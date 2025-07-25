@@ -2,7 +2,7 @@ from datetime import datetime, date, timedelta
 from enum import Enum
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, field_validator
 
 
 class MovieStatusEnum(str, Enum):
@@ -35,7 +35,7 @@ class GenreSchema(BaseModel):
 class MovieBaseSchema(BaseModel):
     id: int
     name: str
-    date: datetime
+    date: date
     score: float
     overview: str
     status: MovieStatusEnum
@@ -54,7 +54,7 @@ class MovieBaseSchema(BaseModel):
 class MovieDetailSchema(BaseModel):
     id: int
     name: str
-    date: datetime
+    date: Optional[date]
     score: float
     overview: str
     status: MovieStatusEnum
@@ -69,7 +69,7 @@ class MovieDetailSchema(BaseModel):
 class MovieListItemSchema(BaseModel):
     id: int
     name: str
-    date: datetime
+    date: Optional[date]
     score: float
     overview: str
 
@@ -87,7 +87,7 @@ class MovieListResponseSchema(BaseModel):
 
 class MovieCreateSchema(BaseModel):
     name: str = Field(..., max_length=255)
-    date: datetime
+    date: Optional[date]
     score: float = Field(..., ge=0, le=100)
     overview: str
     status: MovieStatusEnum
@@ -98,9 +98,10 @@ class MovieCreateSchema(BaseModel):
     actors: List[int]
     languages: List[int]
 
-    @validator("date")
-    def validate_date(cls, value: datetime):
-        max_date = datetime.now() + timedelta(days=365)
+    @field_validator("date")
+    @classmethod
+    def validate_date(cls, value: date) -> date:
+        max_date = date.today() + timedelta(days=365)
         if value > max_date:
             raise ValueError("The date must not be more than one year in the future")
         return value
@@ -108,7 +109,7 @@ class MovieCreateSchema(BaseModel):
 
 class MovieUpdateSchema(BaseModel):
     name: Optional[str] = None
-    date: Optional[datetime] = None
+    date: Optional[date] = None
     score: Optional[float] = None
     overview: Optional[str] = None
     status: Optional[MovieStatusEnum] = None
@@ -118,7 +119,6 @@ class MovieUpdateSchema(BaseModel):
     genre_ids: Optional[List[int]] = None
     actor_ids: Optional[List[int]] = None
     language_ids: Optional[List[int]] = None
-
 
 
 class MovieDeleteSchema(BaseModel):
