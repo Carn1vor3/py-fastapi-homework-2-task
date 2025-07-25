@@ -147,26 +147,26 @@ async def create_movie(movie: MovieCreateSchema, db: AsyncSession = Depends(get_
     return new_movie
 
 
-@router.patch("/movies/{movie_id}/", status_code=status.HTTP_200_OK)
+@router.patch("/{movie_id}", response_model=MovieDetailSchema)
 async def update_movie(
     movie_id: int,
     movie_update: MovieUpdateSchema,
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_db)
 ):
-    result = await db.execute(select(MovieModel).where(MovieModel.id == movie_id))
-    movie = result.scalars().first()
+    result = await db.execute(
+        select(MovieModel)
+        .options(
+            joinedload(MovieModel.genres),
+            joinedload(MovieModel.actors),
+            joinedload(MovieModel.languages),
+            joinedload(MovieModel.country)
+        )
+        .where(MovieModel.id == movie_id)
+    )
+    movie = result.scalar_one_or_none()
     if not movie:
-        raise HTTPException(status_code=404, detail="Movie with the given ID was not found.")
+        raise HTTPException(status_code=404, detail="Movie not found")
 
-    update_data = movie_update.dict(exclude_unset=True)
-
+    update_data = movie_update.dict(exclude_unset=True, exclude={"genres", "actors", "languages", "country_id"})
     for field, value in update_data.items():
         setattr(movie, field, value)
-
-    try:
-        await db.commit()
-    except Exception:
-        await db.rollback()
-        raise HTTPException(status_code=400, detail="Invalid input data.")
-
-    return {"detail": "Movie updated successfully."}

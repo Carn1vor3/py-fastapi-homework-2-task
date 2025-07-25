@@ -45,7 +45,7 @@ class MovieBaseSchema(BaseModel):
     country: CountrySchema
     genres: List[GenreSchema]
     actors: List[ActorSchema]
-    language: List[LanguageSchema]
+    languages: List[LanguageSchema]
 
     class Config:
         orm_mode = True
@@ -115,10 +115,10 @@ class MovieUpdateSchema(BaseModel):
     status: Optional[MovieStatusEnum] = None
     budget: Optional[float] = None
     revenue: Optional[float] = None
-    country_id: Optional[int] = None
-    genre_ids: Optional[List[int]] = None
-    actor_ids: Optional[List[int]] = None
-    language_ids: Optional[List[int]] = None
+    country: Optional[int] = None
+    genres: Optional[List[int]] = None
+    actors: Optional[List[int]] = None
+    languages: Optional[List[int]] = None
 
 
 class MovieDeleteSchema(BaseModel):
