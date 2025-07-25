@@ -167,6 +167,46 @@ async def update_movie(
     if not movie:
         raise HTTPException(status_code=404, detail="Movie not found")
 
-    update_data = movie_update.dict(exclude_unset=True, exclude={"genres", "actors", "languages", "country_id"})
+    update_data = movie_update.dict(exclude_unset=True, exclude={"genres", "actors", "languages", "country"})
     for field, value in update_data.items():
         setattr(movie, field, value)
+
+    if movie_update.genres is not None:
+        genres_result = await db.execute(
+            select(GenreModel).where(GenreModel.name.in_(movie_update.genres))
+        )
+        genres = genres_result.scalars().all()
+        if len(genres) != len(movie_update.genres):
+            raise HTTPException(status_code=400, detail="One or more genres not found")
+        movie.genres = genres
+
+    if movie_update.actors is not None:
+        actors_result = await db.execute(
+            select(ActorModel).where(ActorModel.name.in_(movie_update.actors))
+        )
+        actors = actors_result.scalars().all()
+        if len(actors) != len(movie_update.actors):
+            raise HTTPException(status_code=400, detail="One or more actors not found")
+        movie.actors = actors
+
+    if movie_update.languages is not None:
+        languages_result = await db.execute(
+            select(LanguageModel).where(LanguageModel.name.in_(movie_update.languages))
+        )
+        languages = languages_result.scalars().all()
+        if len(languages) != len(movie_update.languages):
+            raise HTTPException(status_code=400, detail="One or more languages not found")
+        movie.languages = languages
+
+    if movie_update.country is not None:
+        country_result = await db.execute(
+            select(CountryModel).where(CountryModel.iso_code == movie_update.country)
+        )
+        country = country_result.scalar_one_or_none()
+        if not country:
+            raise HTTPException(status_code=400, detail="Country with given ISO code not found")
+        movie.country = country
+
+    await db.commit()
+    await db.refresh(movie)
+    return movie

@@ -65,6 +65,9 @@ class MovieDetailSchema(BaseModel):
     actors: Optional[List[ActorSchema]]
     languages: Optional[List[LanguageSchema]]
 
+    class Config:
+        orm_mode = True
+
 
 class MovieListItemSchema(BaseModel):
     id: int
@@ -93,10 +96,10 @@ class MovieCreateSchema(BaseModel):
     status: MovieStatusEnum
     budget: float = Field(..., ge=0)
     revenue: float = Field(..., ge=0)
-    country: int
-    genres: List[int]
-    actors: List[int]
-    languages: List[int]
+    country: str
+    genres: List[str]
+    actors: List[str]
+    languages: List[str]
 
     @field_validator("date")
     @classmethod
@@ -115,10 +118,10 @@ class MovieUpdateSchema(BaseModel):
     status: Optional[MovieStatusEnum] = None
     budget: Optional[float] = None
     revenue: Optional[float] = None
-    country: Optional[int] = None
-    genres: Optional[List[int]] = None
-    actors: Optional[List[int]] = None
-    languages: Optional[List[int]] = None
+    country: Optional[str] = None
+    genres: Optional[List[str]] = None
+    actors: Optional[List[str]] = None
+    languages: Optional[List[str]] = None
 
 
 class MovieDeleteSchema(BaseModel):
